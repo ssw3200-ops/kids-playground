@@ -61,6 +61,7 @@
   .hb b{display:block;font-family:Jua,sans-serif;font-weight:400;font-size:14px}
   .hb .ic{font-size:17px;display:block;margin:1px 0}
   .hb.l0{background:var(--gbg)}.hb.l1{background:var(--ybg)}.hb.l2{background:var(--rbg)}
+  .hb.dark{background:#ECEAF3;color:#9a96aa}
   .hb.now{outline:3px solid #6C63FF;outline-offset:-3px}
   .hb.sel{outline:3px solid #3d3a36;outline-offset:-3px}
   .hb.past{opacity:.45}
@@ -140,7 +141,7 @@
     <div class="h2">⏰ 시간대별 놀이터 신호 <small>칸을 누르면 이유가 나와요</small></div>
     <div id="days"></div>
     <div class="detail" id="detail" hidden></div>
-    <div class="legend"><span><i style="background:var(--g)"></i>놀이터 GO</span><span><i style="background:var(--y)"></i>짧게·조심</span><span><i style="background:var(--r)"></i>실내 추천</span></div>
+    <div class="legend"><span><i style="background:var(--g)"></i>놀이터 GO</span><span><i style="background:var(--y)"></i>짧게·조심</span><span><i style="background:var(--r)"></i>실내 추천</span><span><i style="background:#ECEAF3"></i>해 진 뒤</span></div>
     <div class="fc" id="fc"></div>
   </section>
 
@@ -280,16 +281,33 @@ function buildHours(){
   HOURS.forEach(h=>{h.air=airAt(h.t);h.uv=uvAt(h.t);h.j=judge(h)});
 }
 const icon=h=>h.Y>0?(PTY[h.Y]||["🌧"])[0]:(SKY[h.S]||["☀️"])[0];
-const isPlay=h=>h.hr>=7&&h.hr<=19;
-function bestRun(list){ // 가장 낮은 단계가 가장 길게 이어지는 시간
+// 해 뜨고 지는 시각 (한국시간, 시 단위 소수) — 놀이터는 해 있을 때만
+function sun(ymd,lat,lon){
+  const d=new Date(ymd+"T00:00:00Z"),n=Math.round((d-Date.UTC(d.getUTCFullYear(),0,0))/864e5);
+  const r=Math.PI/180,dec=-23.44*Math.cos(2*Math.PI/365*(n+10))*r;
+  const B=2*Math.PI*(n-81)/364,E=9.87*Math.sin(2*B)-7.53*Math.cos(B)-1.5*Math.sin(B);
+  const noon=12+(135-lon)*4/60-E/60;
+  const H=Math.acos(Math.max(-1,Math.min(1,(Math.sin(-0.83*r)-Math.sin(lat*r)*Math.sin(dec))/(Math.cos(lat*r)*Math.cos(dec)))))/r/15;
+  return {rise:noon-H,set:noon+H};
+}
+const SUN={};
+function sunOf(ymd){const k=ymd+ST[0];return SUN[k]||(SUN[k]=sun(ymd,ST[2],ST[3]))}
+const fmtH=x=>`${Math.floor(x)}:${String(Math.round((x%1)*60)).padStart(2,"0")}`;
+// 그 시간(h시~h+1시)의 대부분이 해 있는 시간이고 7~19시 사이면 놀이 시간
+const isPlay=h=>{const s=sunOf(h.ymd);return h.hr>=7&&h.hr<=19&&h.hr+0.5>=s.rise&&h.hr+0.5<=s.set};
+// 같은 단계면 한낮(10~15시)을 우선, 이른 아침·해질녘은 조금 덜 추천
+const pen=h=>{const s=sunOf(h.ymd);return h.hr<10?2:(h.hr+1>s.set-0.5?1.5:h.hr>=16?1:0)};
+function bestRun(list){
   const play=list.filter(isPlay);if(!play.length)return null;
   const minLv=Math.min(...play.map(h=>h.j.lv));
-  let best=null,cur=null;
+  const runs=[];let cur=null;
   for(const h of play){
-    if(h.j.lv===minLv){if(cur&&h.hr===cur.e+1)cur.e=h.hr;else cur={s:h.hr,e:h.hr};if(!best||cur.e-cur.s>best.e-best.s)best={...cur}}
+    if(h.j.lv===minLv){if(cur&&h.hr===cur.e+1){cur.e=h.hr;cur.p.push(pen(h))}else runs.push(cur={s:h.hr,e:h.hr,p:[pen(h)]})}
     else cur=null;
   }
-  return best?{...best,lv:minLv}:null;
+  const score=r=>Math.min(r.e-r.s+1,3)*2-r.p.reduce((a,b)=>a+b,0)/r.p.length;
+  const best=runs.sort((a,b)=>score(b)-score(a)||a.s-b.s)[0];
+  return best?{s:best.s,e:best.e,lv:minLv}:null;
 }
 const runTxt=r=>r.s===r.e?`${r.s}시`:`${r.s}~${r.e+1}시`;
 
@@ -301,14 +319,15 @@ function renderVerdict(){
   const tmrH=HOURS.filter(h=>h.ymd===tmr);
   let cur=HOURS.find(h=>h.ymd===today&&h.hr===hr)||HOURS.find(h=>h.t>=new Date(now.getTime()-3600e3));
   const airNow={g10:g10(ST[4]),g25:g25(ST[5])};
-  const night=hr<7||hr>=20;
+  const sn=sunOf(today),night=!(hr>=7&&hr<=19&&hr+0.5>=sn.rise&&hr+0.5<=sn.set),ended=night&&hr>=12;
   let lv,big,why="",best="";
   if(!cur){ $("verdict").className="card verdict";$("verdict").innerHTML=`<div class="empty">날씨 예보를 아직 못 받았어요. 잠시 후 다시 봐주세요!</div>`;return}
   const restRun=bestRun(todayH.filter(h=>h.hr>hr)),tRun=bestRun(tmrH);
   if(night){
-    lv=9;big=hr>=20?"오늘 놀이터 시간은 끝! 🌙":"아직 놀이터 자는 시간 😴";
-    const r=hr>=20?tRun:bestRun(HOURS.filter(h=>h.ymd===today));
-    if(r)best=r.lv===2?`${hr>=20?"내일":"오늘"}은 실내 놀이 추천 🔴`:`${hr>=20?"내일":"오늘"} 추천 ${runTxt(r)} ${["🟢","🟡"][r.lv]}`;
+    lv=9;big=ended?"오늘 놀이터 시간은 끝! 🌙":"아직 놀이터 자는 시간 😴";
+    const r=ended?tRun:bestRun(HOURS.filter(h=>h.ymd===today));
+    const dn=ended?"내일":"오늘";
+    if(r)best=r.lv===2?`${dn}은 실내 놀이 추천 🔴`:`${dn} 추천 ${runTxt(r)} ${["🟢","🟡"][r.lv]}`;
     why=r?(r.lv===0?"놀이터 가기 좋은 시간이 있어요!":r.lv===1?"짧게 놀기 괜찮은 시간이에요.":"내일은 실내 놀이를 추천해요."):"";
   }else{
     lv=cur.j.lv;
@@ -346,12 +365,13 @@ function renderDays(){
   const days=[...new Set(HOURS.map(h=>h.ymd))].filter(d=>d>=today).slice(0,2);
   const name=d=>d===today?"오늘":"내일";
   $("days").innerHTML=days.map(d=>{
-    const list=HOURS.filter(h=>h.ymd===d&&isPlay(h));
+    const list=HOURS.filter(h=>h.ymd===d&&h.hr>=7&&h.hr<=19);
     if(!list.length)return "";
-    const md=d.slice(5).replace("-","/");
-    return `<div class="dl">${name(d)} ${md}</div><div class="tl">${list.map(h=>{
+    const md=d.slice(5).replace("-","/"),sd=sunOf(d);
+    return `<div class="dl">${name(d)} ${md} <span style="font-size:12px;color:var(--sub)">☀️ ${fmtH(sd.rise)} ~ 🌇 ${fmtH(sd.set)}</span></div><div class="tl">${list.map(h=>{
       const past=d===today&&h.hr<hr,isNow=d===today&&h.hr===hr;
-      return `<button class="hb l${h.j.lv}${past?" past":""}${isNow?" now":""}" data-k="${h.ymd}|${h.hr}"><b>${isNow?"지금":h.hr+"시"}</b><span class="ic">${icon(h)}</span>${h.T}°</button>`}).join("")}</div>`;
+      const dark=!isPlay(h);
+      return `<button class="hb ${dark?"dark":"l"+h.j.lv}${past?" past":""}${isNow?" now":""}" data-k="${h.ymd}|${h.hr}"><b>${isNow?"지금":h.hr+"시"}</b><span class="ic">${dark?"🌙":icon(h)}</span>${h.T}°</button>`}).join("")}</div>`;
   }).join("")||`<div class="empty">예보를 아직 못 받았어요</div>`;
   $("days").onclick=e=>{
     const b=e.target.closest(".hb");if(!b)return;
@@ -359,7 +379,7 @@ function renderDays(){
     document.querySelectorAll(".hb.sel").forEach(x=>x.classList.remove("sel"));
     if(SEL===b.dataset.k){SEL=null;$("detail").hidden=true;return}
     SEL=b.dataset.k;b.classList.add("sel");
-    const w=h.j.why.length?h.j.why.map(x=>`${["🟢","🟡","🔴"][x[0]]} ${x[1]}`).join("<br>"):"🟢 놀기 좋은 시간이에요!";
+    const w=!isPlay(h)?"🌙 해가 없는 시간이라 놀이터는 추천하지 않아요":h.j.why.length?h.j.why.map(x=>`${["🟢","🟡","🔴"][x[0]]} ${x[1]}`).join("<br>"):"🟢 놀기 좋은 시간이에요!";
     $("detail").innerHTML=`<b>${name(d)} ${h.hr}시</b> · ${icon(h)} ${h.T}℃ (체감 ${h.F}℃) · ☔ ${h.P}% · 💨 ${h.W!=null?h.W.toFixed(1):"—"}m/s${h.air?` · 대기 ${G[Math.max(h.air.g10,h.air.g25)]||"—"}(${h.air.src})`:""}<br>${w}`;
     $("detail").hidden=false;
   };

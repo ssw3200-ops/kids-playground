@@ -46,7 +46,8 @@ NOW = datetime.now(KST)
 AIR = "https://apis.data.go.kr/B552584/ArpltnInforInqireSvc"
 STN_URL = "https://apis.data.go.kr/B552584/MsrstnInfoInqireSvc/getMsrstnList"
 VF_URL = "https://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getVilageFcst"
-UV_URL = "https://apis.data.go.kr/1360000/LivingWthrIdxServiceV4/getUVIdxV4"
+UV_URLS = ["https://apis.data.go.kr/1360000/LivingWthrIdxServiceV5/getUVIdxV5",
+           "https://apis.data.go.kr/1360000/LivingWthrIdxServiceV4/getUVIdxV4"]
 PF_URL = "https://apis.data.go.kr/1741000/pfc3/getPfctInfo3"
 
 STATION_DAYS = 7   # 측정소 목록 다시 받는 주기
@@ -374,41 +375,59 @@ def fetch_weather(key: str, grids: list[tuple[int, int]], prev_wx: dict) -> dict
 
 
 # ---------------------------------------------------------------- 5) 자외선
-def uv_time() -> str:
+def uv_times() -> list[str]:
+    """최근 발표 후보 (V5는 3시간마다, V4는 06·18시) — 최신부터"""
     t = NOW - timedelta(minutes=40)
-    if t.hour >= 18:
-        return t.strftime("%Y%m%d") + "18"
-    if t.hour >= 6:
-        return t.strftime("%Y%m%d") + "06"
-    return (t - timedelta(days=1)).strftime("%Y%m%d") + "18"
+    out = []
+    for back in range(0, 25, 3):
+        x = t - timedelta(hours=back)
+        out.append(x.strftime("%Y%m%d") + f"{x.hour - x.hour % 3:02d}")
+    return list(dict.fromkeys(out))
+
+
+def uv_one(key: str, url: str, code: str, tm: str) -> list | None:
+    its, _ = call(url, {"serviceKey": key, "dataType": "JSON", "numOfRows": 10, "pageNo": 1,
+                        "areaNo": code, "time": tm}, tries=2)
+    if not its:
+        return None
+    vals = sorted((int(k[1:]), int(fnum(v))) for k, v in its[0].items()
+                  if re.fullmatch(r"h\d+", k) and fnum(v) is not None)
+    return vals or None
 
 
 def fetch_uv(key: str, prev_uv: dict) -> dict:
-    tm = uv_time()
-    if prev_uv.get("time") == tm and prev_uv.get("r"):
-        status["sources"]["uv"] = {"time": tm, "reused": True}
-        return prev_uv
+    # 세종으로 지금 받을 수 있는 발표시각·주소를 먼저 찾음
+    found = None
+    for tm in uv_times():
+        if prev_uv.get("time") == tm and prev_uv.get("r"):
+            status["sources"]["uv"] = {"time": tm, "reused": True}
+            return prev_uv
+        for url in UV_URLS:
+            try:
+                if uv_one(key, url, UV_AREA["세종"][0], tm):
+                    found = (url, tm)
+                    break
+            except Exception as e:  # noqa: BLE001
+                err(f"자외선 확인 {url.rsplit('/', 1)[-1]} {tm}", e)
+        if found:
+            break
+    if not found:
+        status["sources"]["uv"] = {"found": False}
+        return prev_uv or {}
+    url, tm = found
     out = {}
     for reg, codes in UV_AREA.items():
         for code in codes:
             try:
-                its, _ = call(UV_URL, {"serviceKey": key, "dataType": "JSON", "numOfRows": 10, "pageNo": 1,
-                                       "areaNo": code, "time": tm}, tries=2)
+                v = uv_one(key, url, code, tm)
             except Exception as e:  # noqa: BLE001
                 err(f"자외선 {reg} {code}", e)
                 continue
-            if not its:
-                continue
-            it = its[0]
-            vals = sorted((int(k[1:]), int(fnum(v))) for k, v in it.items()
-                          if re.fullmatch(r"h\d+", k) and fnum(v) is not None)
-            if vals:
-                out[reg] = vals
+            if v:
+                out[reg] = v
                 break
-    status["sources"]["uv"] = {"time": tm, "regions": len(out)}
-    if not out and prev_uv:
-        return prev_uv
-    return {"time": tm, "r": out}
+    status["sources"]["uv"] = {"time": tm, "api": url.rsplit("/", 1)[-1], "regions": len(out)}
+    return {"time": tm, "r": out} if out else (prev_uv or {})
 
 
 # ---------------------------------------------------------------- 6) 놀이시설
@@ -538,7 +557,7 @@ def sample_data() -> tuple[list, dict, dict, dict, dict, dict]:
             arr["S"].append(rnd.choice([1, 3, 4]))
         g[f"{nx},{ny}"] = arr
     wx = {"base": bkey, "start": start_dt.strftime("%Y%m%d%H"), "g": g}
-    uv = {"time": uv_time(), "r": {r: [(0, 2), (3, 3), (6, 1), (9, 0), (12, 0), (15, 0), (18, 1), (21, 3), (24, 2)]
+    uv = {"time": uv_times()[0], "r": {r: [(0, 2), (3, 3), (6, 1), (9, 0), (12, 0), (15, 0), (18, 1), (21, 3), (24, 2)]
                                    for r in ("세종", "대전", "서울", "경기")}}
     places: dict[str, list] = {r: [] for r in REGIONS}
     kinds = ["p", "p", "a", "a", "a", "i", "o"]

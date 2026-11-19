@@ -263,11 +263,10 @@ function judge(h){
 function buildHours(){
   const wx=D.wx;HOURS=[];
   if(!wx||!wx.g)return;
-  let g=wx.g[ST[8]];
-  if(!g){ // 이 동네 격자가 없으면 가장 가까운 측정소 격자
-    const near=D.st.filter(s=>wx.g[s[8]]).sort((a,b)=>dist(ST[2],ST[3],a[2],a[3])-dist(ST[2],ST[3],b[2],b[3]))[0];
-    if(near)g=wx.g[near[8]];
-  }
+  // 날씨는 기준점(내 위치 또는 동네)에서 가장 가까운 예보 지점
+  const [la,lo]=refPoint();
+  const near=D.st.filter(s=>wx.g[s[8]]).sort((a,b)=>dist(la,lo,a[2],a[3])-dist(la,lo,b[2],b[3]))[0];
+  let g=near?wx.g[near[8]]:wx.g[ST[8]];
   if(!g)return;
   const start=parseYmdh(wx.start);
   for(let i=0;i<g.T.length;i++){
@@ -354,7 +353,7 @@ function renderVerdict(){
     <div class="why">${why}</div>
     <div class="stats">${stats}</div>
     <div class="tip">${tips.filter(Boolean).join("<br>")}</div>
-    <div class="src">📍 ${esc(ST[1])} ${esc(ST[0])} 측정소 기준 · 측정 ${esc(ST[7]||"-")}${ME?` · 내 위치에서 ${km(dist(ME[0],ME[1],ST[2],ST[3]))}`:""}</div>`;
+    <div class="src">${ME?`📍 <b>내 위치 기준</b> · 미세먼지는 ${km(dist(ME[0],ME[1],ST[2],ST[3]))} 떨어진 ${esc(ST[0])} 측정소`:`📍 ${esc(ST[1])} ${esc(ST[0])} 측정소 기준`} · 측정 ${esc(ST[7]||"-")}</div>`;
   return lv;
 }
 function renderDays(){
@@ -465,8 +464,8 @@ function setupUI(){
   const saved=(store.get("kp_st")||"세종|").split("|");
   $("region").value=ss.includes(saved[0])?saved[0]:(ss.includes("세종")?"세종":ss[0]);
   fillStations($("region").value,saved[1]);
-  $("region").onchange=()=>{ME=null;locOff();fillStations($("region").value);choose()};
-  $("station").onchange=()=>{ME=null;locOff();choose()};
+  $("region").onchange=()=>{ME=null;locOff();store.set("kp_mode","station");fillStations($("region").value);choose()};
+  $("station").onchange=()=>{ME=null;locOff();store.set("kp_mode","station");choose()};
   $("loc").onclick=locate;
   $("ptab").onclick=e=>{const b=e.target.closest("button");if(!b)return;PTAB=b.dataset.k;apply.userTab=true;
     [...$("ptab").children].forEach(x=>x.classList.toggle("on",x===b));SHOW=10;renderPlaces()};
@@ -475,16 +474,18 @@ function setupUI(){
 }
 function locOff(){$("loc").classList.remove("on");$("loc").textContent="📍 내 위치"}
 function choose(){ST=pickFromUI();store.set("kp_st",$("region").value+"|"+$("station").value);apply()}
-function locate(){
-  if(!navigator.geolocation){alert("이 휴대폰에서는 위치를 쓸 수 없어요. 동네를 직접 골라주세요.");return}
+// 내 실제 위치(GPS) 기준: 판정·날씨·장소 거리 모두 내 위치에서 계산, 미세먼지만 가장 가까운 측정소 값
+function locate(auto){
+  if(!navigator.geolocation){if(!auto)alert("이 휴대폰에서는 위치를 쓸 수 없어요. 동네를 직접 골라주세요.");return}
   $("loc").textContent="찾는 중…";
   navigator.geolocation.getCurrentPosition(p=>{
-    ME=[p.coords.latitude,p.coords.longitude];
+    ME=[p.coords.latitude,p.coords.longitude];store.set("kp_mode","gps");
     const s=nearestStation(ME[0],ME[1]);
     $("region").value=s[1];fillStations(s[1],s[0]);ST=s;
-    $("loc").textContent="📍 내 주변";$("loc").classList.add("on");
+    $("loc").textContent="📍 내 위치";$("loc").classList.add("on");
     apply();
-  },()=>{locOff();alert("위치 권한이 꺼져 있어요. 동네를 직접 골라주세요.")},{enableHighAccuracy:false,timeout:10000,maximumAge:300000});
+  },()=>{locOff();if(!auto)alert("위치 권한이 꺼져 있어요. 휴대폰 설정에서 위치 권한을 켜거나 동네를 직접 골라주세요.")},
+  {enableHighAccuracy:true,timeout:10000,maximumAge:60000});
 }
 
 // ---------- 시작
@@ -494,6 +495,7 @@ async function unlock(pw,quiet){
     D=await decrypt(await getJSON(`now.enc.json?v=${encodeURIComponent(META.updated)}`),pw);
     PW=pw;store.set("kp_pw",pw);$("lock").hidden=true;
     setupUI();choose();
+    if(store.get("kp_mode")!=="station")locate(true);
   }catch(e){
     $("lock").hidden=false;if(!quiet)$("pwErr").textContent="비밀번호가 맞지 않아요. 최신 비밀번호를 확인해 주세요!";
   }

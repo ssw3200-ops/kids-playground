@@ -329,15 +329,12 @@ function renderVerdict(){
     const r=ended?tRun:bestRun(HOURS.filter(h=>h.ymd===today));
     const dn=ended?"내일":"오늘";
     if(r)best=r.lv===2?`${dn}은 실내 놀이 추천 🔴`:`${dn} 추천 ${runTxt(r)} ${["🟢","🟡"][r.lv]}`;
-    why=r?(r.lv===0?"놀이터 가기 좋은 시간이 있어요!":r.lv===1?"짧게 놀기 괜찮은 시간이에요.":"내일은 실내 놀이를 추천해요."):"";
+    why=r?`${dn}은 ${["🟢 놀이터 가기 좋은 시간이 있어요!","🟡 짧게 놀기 괜찮은 시간이 있어요.","🔴 실내 놀이를 추천해요."][r.lv]}<br>아래 시간 칸에서 확인하세요.`:"";
   }else{
     lv=cur.j.lv;
     big=["놀이터 GO! 🛝","짧게 놀고 오기 ⏱","오늘은 실내 놀이 🏠"][lv];
     const reasons=cur.j.why.filter(w=>w[0]===lv).map(w=>w[1]);
     why=lv===0?`미세먼지 ${G[Math.max(airNow.g10,airNow.g25)]||"정보 없음"}, ${(SKY[cur.S]||["",""])[1]||"날씨"} ${cur.T}℃ — 신나게 놀기 좋아요!`:reasons.join("<br>");
-    if(lv===2&&restRun&&restRun.lv<2){big="지금은 실내, 이따 놀이터 ⏳";best=`추천 ${runTxt(restRun)} ${["🟢","🟡"][restRun.lv]}`}
-    else if(restRun&&restRun.lv<=lv&&restRun.s>hr)best=`오늘 더 좋은 시간 ${runTxt(restRun)} ${["🟢","🟡","🔴"][restRun.lv]}`;
-    else if(restRun&&restRun.lv<=lv&&lv<2)best=`${restRun.e+1}시까지 계속 ${["🟢 좋아요","🟡 비슷해요"][restRun.lv]}`;
   }
   const h=night?(tmrH.find(x=>x.hr===10)||cur):cur;
   const a10=g10(ST[4]),a25=g25(ST[5]);
@@ -355,7 +352,6 @@ function renderVerdict(){
     <div class="light"><i></i><i></i><i></i></div>
     <div class="big">${big}</div>
     <div class="why">${why}</div>
-    ${best?`<div class="best">${best}</div>`:""}
     <div class="stats">${stats}</div>
     <div class="tip">${tips.filter(Boolean).join("<br>")}</div>
     <div class="src">📍 ${esc(ST[1])} ${esc(ST[0])} 측정소 기준 · 측정 ${esc(ST[7]||"-")}${ME?` · 내 위치에서 ${km(dist(ME[0],ME[1],ST[2],ST[3]))}`:""}</div>`;

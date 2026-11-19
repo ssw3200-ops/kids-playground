@@ -148,8 +148,9 @@
   <section class="card">
     <div class="h2">🗺 지금 어디로 갈까?</div>
     <div class="seg" id="ptab">
-      <button data-k="out" class="on">🛝 실외 놀이터</button>
-      <button data-k="in">🏠 실내 놀이시설</button>
+      <button data-k="out" class="on">🛝 놀이터</button>
+      <button data-k="in">🏠 실내 놀이</button>
+      <button data-k="food">🍽 키즈룸 식당</button>
     </div>
     <div class="chips" id="pchips"></div>
     <div class="count" id="pcount"></div>
@@ -393,7 +394,7 @@ function renderDays(){
 }
 
 // ---------- 장소
-const KIND={p:["🌳 공원·공공","p"],a:["🏢 아파트 단지","a"],i:["🏠 실내","i"],o:["🛝 기타 실외",""]};
+const KIND={p:["🌳 공원·공공","p"],a:["🏢 아파트 단지","a"],i:["🧸 키즈카페·실내놀이","i"],k:["🍽 키즈룸 식당·카페","i"],o:["🛝 기타 실외",""]};
 async function loadPlaces(reg){
   if(PCACHE[reg])return PCACHE[reg];
   const m=META.regions[reg];if(!m)return [];
@@ -415,12 +416,14 @@ async function renderPlaces(){
   if(!regs.includes(ST[1])&&META.regions[ST[1]])regs.unshift(ST[1]);
   let rows=[];
   for(const r of regs){try{rows=rows.concat(await loadPlaces(r))}catch(e){}}
-  const R=PTAB==="in"?5:2;
-  let list=rows.filter(p=>PTAB==="in"?p[4]==="i":(p[4]!=="i"&&(PKIND==="all"||p[4]==="p"||p[4]==="o"||(PKIND==="a"&&p[4]==="a"))))
+  const R=PTAB==="out"?2:5;
+  let list=rows.filter(p=>PTAB==="in"?p[4]==="i":PTAB==="food"?p[4]==="k":(p[4]!=="i"&&p[4]!=="k"&&(PKIND==="all"||p[4]==="p"||p[4]==="o"||(PKIND==="a"&&p[4]==="a"))))
     .map(p=>({p,d:dist(la,lo,p[2],p[3])})).filter(x=>x.d<=R).sort((a,b)=>a.d-b.d);
   $("pcount").textContent=`${ME?"내 위치":esc(ST[0])+" 측정소"}에서 ${R}km 안 · ${list.length}곳`;
-  $("pnote").innerHTML=PTAB==="in"?"실내 놀이시설은 키즈카페 등 유료일 수 있어요. 운영시간·요금은 출발 전 검색·전화로 확인하세요.":"아파트 단지 놀이터는 입주민 위주로 운영되는 곳이 많아요. 위치는 놀이시설 신고 기준이에요.";
-  if(!list.length){$("plist").innerHTML=`<div class="empty">${R}km 안에 등록된 ${PTAB==="in"?"실내 놀이시설":"놀이터"}가 없어요 😢<br>${PTAB==="out"&&PKIND==="p"?"‘아파트 단지 포함’을 눌러보세요.":"📍 내 위치를 눌러보세요."}</div>`;$("pmore").hidden=true;return}
+  $("pnote").innerHTML=PTAB==="in"?"키즈카페 등은 유료일 수 있어요. 운영시간·요금은 출발 전 검색·전화로 확인하세요."
+    :PTAB==="food"?"놀이시설을 신고한 식당·카페예요. 키즈룸 운영 여부·이용 조건은 방문 전 전화로 확인하세요."
+    :"아파트 단지 놀이터는 입주민 위주로 운영되는 곳이 많아요. 위치는 놀이시설 신고 기준이에요.";
+  if(!list.length){$("plist").innerHTML=`<div class="empty">${R}km 안에 등록된 ${PTAB==="in"?"실내 놀이시설":PTAB==="food"?"키즈룸 식당":"놀이터"} 정보가 없어요 😢<br>${PTAB==="out"&&PKIND==="p"?"‘아파트 단지 포함’을 눌러보세요.":"📍 내 위치를 눌러보세요."}</div>`;$("pmore").hidden=true;return}
   $("plist").innerHTML=list.slice(0,SHOW).map(({p,d})=>{
     const [name,addr,,,k,place]=p;const kd=KIND[k]||KIND.o;
     const q=encodeURIComponent(name+" "+addr.split(" ").slice(0,3).join(" "));

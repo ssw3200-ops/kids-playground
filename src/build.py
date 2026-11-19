@@ -437,13 +437,40 @@ PARK_PLACE = ("도시공원", "공원", "자연휴양림", "하천", "공공", "
 APT_PLACE = ("주택단지", "아파트", "공동주택")
 
 
+FOOD_PLACE = ("식품접객", "휴게음식", "일반음식", "제과")
+# 이름에 이게 있으면 키즈카페·실내놀이터
+KIDS_NAME = ("키즈카페", "키즈 카페", "키즈파크", "키즈랜드", "키즈월드", "키즈클럽", "키즈플레이", "플레이", "PLAY", "play",
+             "점핑", "트램폴린", "방방", "실내놀이", "놀이터", "놀이동산", "놀이마을", "볼풀", "슈퍼파크", "챔피언", "뽀로로",
+             "타요", "상상", "꿈터", "어린이", "키즈")
+# 이름에 이게 있으면 키즈룸 있는 식당·카페
+FOOD_NAME = ("식당", "정육", "갈비", "고기", "한우", "가든", "숯불", "횟집", "수산", "해물", "국밥", "면옥", "냉면", "칼국수",
+             "뷔페", "부페", "치킨", "피자", "레스토랑", "삼겹", "막창", "곱창", "보쌈", "족발", "오리", "쭈꾸미", "주꾸미",
+             "돈까스", "돈가스", "버거", "맥도날드", "롯데리아", "샤브", "한정식", "밥상", "식육", "닭갈비", "아구", "추어",
+             "곰탕", "설렁탕", "해장", "갈비탕", "우동", "중화", "반점", "짬뽕", "파스타", "브런치", "베이커리", "커피", "카페",
+             "횟", "회관", "가마솥", "농원", "한식", "양식", "일식", "분식", "포차", "BBQ", "bbq")
+
+
+def food_or_kids(name: str) -> str:
+    """식품접객업소 안 놀이시설: k 키즈룸 식당·카페 / i 키즈카페"""
+    n = name.replace(" ", "")
+    if any(w.replace(" ", "") in n for w in ("키즈카페", "키즈파크", "키즈랜드", "점핑", "트램폴린", "실내놀이")):
+        return "i"
+    if any(w in n for w in FOOD_NAME):
+        return "k"
+    if any(w in n for w in KIDS_NAME):
+        return "i"
+    return "k"
+
+
 def kind_of(it: dict) -> str | None:
-    """p 공원·공공 놀이터 / a 아파트 단지 / i 실내 놀이시설 / o 기타 실외 / None 제외"""
+    """p 공원·공공 놀이터 / a 아파트 단지 / i 실내 놀이(키즈카페 등) / k 키즈룸 식당·카페 / o 기타 실외 / None 제외"""
     vals = " ".join(str(v) for k, v in it.items() if isinstance(v, str) and re.search(r"(Nm|Cd|Se|Yn)$", k))
     place = str(it.get("instlPlaceCdNm") or "")
     io = " ".join(str(v) for k, v in it.items() if re.search(r"(idrodr|inout|Idrodr)", k, re.I))
     if any(w in place for w in SKIP_PLACE):
         return None
+    if any(w in place for w in FOOD_PLACE):
+        return food_or_kids(str(it.get("pfctNm") or ""))
     if "실내" in io or any(w in place for w in INDOOR_PLACE):
         return "i"
     if any(w in place for w in APT_PLACE):
@@ -517,6 +544,8 @@ def fetch_places(key: str) -> dict[str, list]:
         name = str(it.get("pfctNm") or "놀이시설").strip()
         out[reg].append([name, addr, ll[0], ll[1], k, pn if pn != "?" else ""])
         st["kinds"][k] = st["kinds"].get(k, 0) + 1
+        if reg == "세종" and len(st.setdefault("examples", {}).setdefault(k, [])) < 25:
+            st["examples"][k].append(f"{name} ({pn})")
     st["place_names"] = dict(sorted(st["place_names"].items(), key=lambda x: -x[1])[:40])
     status["sources"]["places"] = st
     if sum(len(v) for v in out.values()) < 1000:
@@ -560,14 +589,14 @@ def sample_data() -> tuple[list, dict, dict, dict, dict, dict]:
     uv = {"time": uv_times()[0], "r": {r: [(0, 2), (3, 3), (6, 1), (9, 0), (12, 0), (15, 0), (18, 1), (21, 3), (24, 2)]
                                    for r in ("세종", "대전", "서울", "경기")}}
     places: dict[str, list] = {r: [] for r in REGIONS}
-    kinds = ["p", "p", "a", "a", "a", "i", "o"]
+    kinds = ["p", "p", "a", "a", "a", "i", "k", "o"]
     for s in stations:
         for j in range(25):
             k = rnd.choice(kinds)
-            nm = {"p": "어린이공원 놀이터", "a": "아파트 놀이터", "i": "키즈카페", "o": "놀이시설"}[k]
+            nm = {"p": "어린이공원 놀이터", "a": "아파트 놀이터", "i": "키즈카페", "k": "정육식당", "o": "놀이시설"}[k]
             places[s["sido"]].append([f"{s['n']} 샘플 {nm} {j + 1}", f"{s['sido']} 샘플로 {j + 1}",
                                       round(s["lat"] + rnd.uniform(-0.02, 0.02), 5), round(s["lon"] + rnd.uniform(-0.02, 0.02), 5),
-                                      k, {"p": "도시공원", "a": "주택단지", "i": "식품접객업소", "o": "기타"}[k]])
+                                      k, {"p": "도시공원", "a": "주택단지", "i": "식품접객업소", "k": "식품접객업소", "o": "기타"}[k]])
     return stations, air, fc, wx, uv, places
 
 
@@ -703,6 +732,7 @@ def main() -> int:
     else:
         meta["regions"] = {}
 
+    meta["places_stats"] = status["sources"].get("places") or pmeta.get("places_stats")
     meta["weather_base"] = (wx or {}).get("base")
     meta["air_time"] = next((r[7] for r in st_out if r[7]), "")
     (out / "meta.json").write_text(json.dumps(meta, ensure_ascii=False, indent=1), encoding="utf-8")

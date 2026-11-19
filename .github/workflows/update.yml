@@ -1,0 +1,66 @@
+name: 놀이터 날씨 자동 갱신
+
+on:
+  schedule:
+    - cron: "25 * * * *"   # 매시간 25분 (에어코리아 정시 측정값이 15분쯤 올라옴)
+  push:
+    branches: [main]
+    paths:
+      - "src/**"
+      - "docs/**"
+      - ".github/workflows/update.yml"
+  workflow_dispatch:
+    inputs:
+      sample:
+        description: "샘플 데이터로 실행 (키 없이 화면 확인)"
+        type: boolean
+        default: false
+      force_places:
+        description: "놀이시설 목록 지금 다시 받기 (보통 주 1회 자동)"
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+concurrency:
+  group: update
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - name: 이전 결과 가져오기 (gh-pages)
+        run: |
+          if git fetch --depth 1 origin gh-pages 2>/dev/null; then
+            git worktree add --detach prev FETCH_HEAD
+          else
+            mkdir -p prev && echo "첫 실행"
+          fi
+      - name: 수집 + 암호화
+        env:
+          DATA_GO_KR_KEY: ${{ secrets.DATA_GO_KR_KEY }}
+          PAGE_PASSWORD: ${{ secrets.PAGE_PASSWORD }}
+        run: |
+          ARGS="--prev prev --out site"
+          [ "${{ inputs.sample }}" = "true" ] && ARGS="$ARGS --sample"
+          [ "${{ inputs.force_places }}" = "true" ] && ARGS="$ARGS --force-places"
+          python src/build.py $ARGS
+      - name: gh-pages 로 배포 (기록 안 쌓이게 매번 한 커밋으로 덮어씀)
+        run: |
+          cd site
+          touch .nojekyll
+          git init -q -b gh-pages
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -q -m "놀이터 날씨 $(TZ=Asia/Seoul date '+%Y-%m-%d %H:%M')"
+          git push -q -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" gh-pages

@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>오늘 놀이터 가도 될까? | 미세먼지·날씨로 보는 놀이 시간</title>
+<meta name="robots" content="noindex">
+<meta property="og:title" content="오늘 놀이터 가도 될까? 🛝">
+<meta property="og:description" content="우리 동네 미세먼지·날씨로 오늘 놀이터 갈지, 몇 시가 좋은지, 어디로 갈지 알려줘요">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Jua&display=swap" rel="stylesheet">
+<style>
+  :root{--bg:#EEF8FF;--card:#fff;--ink:#3d3a36;--sub:#8a8178;--main:#3FA7F5;--pink:#FF6B8B;--line:#D9ECFA;
+        --g:#2EB24F;--gbg:#E3F8E6;--y:#F2A100;--ybg:#FFF3D6;--r:#E8473B;--rbg:#FFE5E2;--n:#B9B4C9;--nbg:#F1F0F5}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR",sans-serif;-webkit-text-size-adjust:100%}
+  .j{font-family:Jua,sans-serif;font-weight:400}
+  header{padding:20px 16px 4px;text-align:center}
+  h1{font-family:Jua,sans-serif;font-weight:400;font-size:27px;margin:0;line-height:1.3}
+  h1 span:nth-child(7n+1){color:#FF5A5F}h1 span:nth-child(7n+2){color:#FF9F1C}h1 span:nth-child(7n+3){color:#F2B705}
+  h1 span:nth-child(7n+4){color:#4CB84C}h1 span:nth-child(7n+5){color:#3FA7F5}h1 span:nth-child(7n+6){color:#6C63FF}h1 span:nth-child(7n){color:#C86DD7}
+  .sub{font-family:Jua,sans-serif;color:var(--main);font-size:16px;margin-top:2px}
+  .upd{font-size:12px;color:var(--sub);margin-top:6px}
+  .wrap{max-width:640px;margin:0 auto}
+  .bar{position:sticky;top:0;z-index:5;background:var(--bg);border-bottom:1px solid var(--line);padding:8px 12px}
+  .top{display:flex;gap:8px;align-items:center}
+  select{font-size:16px;border:2px solid var(--line);border-radius:14px;background:#fff;color:var(--ink);padding:9px 8px;min-height:44px;font-family:Jua,sans-serif;flex:1;min-width:0}
+  .loc{flex:0 0 auto;border:0;background:var(--pink);color:#fff;border-radius:14px;padding:0 12px;min-height:44px;font-family:Jua,sans-serif;font-size:15px}
+  .loc.on{background:var(--g)}
+  main{padding:12px;max-width:640px;margin:0 auto}
+  .card{background:var(--card);border-radius:22px;margin-bottom:14px;box-shadow:0 2px 0 var(--line);padding:16px 14px}
+  .h2{font-family:Jua,sans-serif;font-size:19px;margin:0 0 10px;display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+  .h2 small{font-family:-apple-system,sans-serif;font-size:12px;color:var(--sub);font-weight:400}
+  /* 판정 */
+  .verdict{text-align:center;padding:20px 14px 16px}
+  .verdict.l0{background:linear-gradient(180deg,var(--gbg),#fff 70%)}
+  .verdict.l1{background:linear-gradient(180deg,var(--ybg),#fff 70%)}
+  .verdict.l2{background:linear-gradient(180deg,var(--rbg),#fff 70%)}
+  .verdict.l9{background:linear-gradient(180deg,#E9E6FF,#fff 70%)}
+  .light{display:inline-flex;gap:8px;background:#3d3a36;padding:8px 12px;border-radius:999px;margin-bottom:10px}
+  .light i{width:26px;height:26px;border-radius:50%;background:#5c5853;display:block}
+  .l0 .light i:nth-child(1){background:var(--g);box-shadow:0 0 12px var(--g)}
+  .l1 .light i:nth-child(2){background:var(--y);box-shadow:0 0 12px var(--y)}
+  .l2 .light i:nth-child(3){background:var(--r);box-shadow:0 0 12px var(--r)}
+  .big{font-family:Jua,sans-serif;font-size:32px;line-height:1.25;margin:2px 0 4px;word-break:keep-all}
+  .l0 .big{color:var(--g)}.l1 .big{color:#C98200}.l2 .big{color:var(--r)}.l9 .big{color:#6C63FF}
+  .why{font-size:15px;line-height:1.55;color:#5b554f;word-break:keep-all;margin:4px 0 0}
+  .best{display:inline-block;margin-top:10px;background:#fff;border:2px solid var(--line);border-radius:999px;padding:7px 14px;font-family:Jua,sans-serif;font-size:16px}
+  .stats{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px;text-align:left}
+  .st{background:#F7FAFD;border-radius:14px;padding:9px 10px}
+  .st .k{font-size:12px;color:var(--sub)}
+  .st .v{font-family:Jua,sans-serif;font-size:18px;margin-top:2px}
+  .st .d{font-size:12px;color:var(--sub);margin-top:1px}
+  .c1{color:#2B7BE4}.c2{color:var(--g)}.c3{color:#E07B00}.c4{color:var(--r)}
+  .tip{margin-top:12px;background:#FFF9E8;border-radius:14px;padding:10px 12px;font-size:14px;line-height:1.55;text-align:left;word-break:keep-all}
+  .src{font-size:11.5px;color:var(--sub);margin-top:10px;line-height:1.5}
+  /* 시간대 */
+  .tl{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;padding:2px 0 6px}
+  .tl::-webkit-scrollbar{display:none}
+  .hb{flex:0 0 44px;border:0;border-radius:12px;padding:6px 0 5px;text-align:center;font-size:11px;line-height:1.35;color:#3d3a36;background:var(--nbg)}
+  .hb b{display:block;font-family:Jua,sans-serif;font-weight:400;font-size:14px}
+  .hb .ic{font-size:17px;display:block;margin:1px 0}
+  .hb.l0{background:var(--gbg)}.hb.l1{background:var(--ybg)}.hb.l2{background:var(--rbg)}
+  .hb.now{outline:3px solid #6C63FF;outline-offset:-3px}
+  .hb.sel{outline:3px solid #3d3a36;outline-offset:-3px}
+  .hb.past{opacity:.45}
+  .dl{font-family:Jua,sans-serif;font-size:15px;margin:10px 0 6px;color:#6C63FF}
+  .legend{display:flex;gap:10px;font-size:12px;color:var(--sub);margin-top:6px;flex-wrap:wrap}
+  .legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:3px;vertical-align:-1px}
+  .detail{margin-top:8px;background:#F7FAFD;border-radius:14px;padding:10px 12px;font-size:14px;line-height:1.6;word-break:keep-all}
+  .detail[hidden]{display:none}
+  .fc{font-size:13.5px;line-height:1.6;color:#5b554f;margin-top:8px}
+  /* 장소 */
+  .seg{display:flex;background:#fff;border:2px solid var(--line);border-radius:14px;overflow:hidden}
+  .seg button{flex:1;border:0;background:none;padding:10px 4px;font-family:Jua,sans-serif;font-size:16px;color:var(--sub);min-height:44px}
+  .seg button.on{background:var(--main);color:#fff}
+  .chips{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding:8px 0 4px}
+  .chips::-webkit-scrollbar{display:none}
+  .chip{flex:0 0 auto;border:2px solid var(--line);background:#fff;border-radius:999px;padding:7px 13px;font-size:14px;font-family:Jua,sans-serif;color:var(--ink);min-height:38px}
+  .chip.on{background:var(--g);border-color:var(--g);color:#fff}
+  .count{font-size:13px;color:var(--sub);margin:6px 2px 8px}
+  .pl{border-top:1px dashed var(--line);padding:11px 2px}
+  .pl:first-child{border-top:0}
+  .pl .t{font-size:16px;font-weight:700;line-height:1.35;word-break:keep-all}
+  .pl .row{font-size:13px;color:#5b554f;margin-top:3px;line-height:1.45}
+  .pl .tags{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:4px}
+  .tag{font-size:12px;padding:2px 9px;border-radius:999px;background:#EAF5FF;color:#2B7BE4}
+  .tag.a{background:#F3EEFF;color:#6C63FF}.tag.i{background:#FFF0F3;color:var(--pink)}.tag.p{background:var(--gbg);color:#1E7B34}
+  .pl .go{display:flex;gap:8px;margin-top:8px}
+  .pl .go a{flex:1;text-align:center;text-decoration:none;border-radius:12px;padding:9px 4px;font-family:Jua,sans-serif;font-size:15px;background:#E9F7EC;color:#1E7B34}
+  .pl .go a.nv{background:#F4F2FF;color:#6C63FF}
+  .more{display:block;width:100%;border:2px solid var(--line);background:#fff;border-radius:14px;padding:12px;font-family:Jua,sans-serif;font-size:16px;color:var(--ink);margin:8px 0 0}
+  .more[hidden]{display:none}
+  .note{font-size:12.5px;color:var(--sub);line-height:1.55;margin-top:8px;word-break:keep-all}
+  .link{display:block;text-decoration:none;background:#FFF0F3;color:var(--pink);border-radius:16px;padding:13px 14px;font-family:Jua,sans-serif;font-size:17px;margin-top:10px}
+  .link small{display:block;font-family:-apple-system,sans-serif;font-size:12.5px;color:#a0606f;margin-top:2px}
+  .empty{text-align:center;color:var(--sub);padding:24px 0;line-height:1.7;font-size:14px}
+  .sample{background:#FFF3B0;color:#7a6200;text-align:center;font-size:13px;padding:8px}
+  footer{text-align:center;padding:8px 16px 40px;font-size:12px;color:var(--sub);line-height:1.7}
+  footer a.blog{display:inline-block;margin-top:10px;background:#FFF0F3;color:var(--pink);font-family:Jua,sans-serif;font-size:17px;text-decoration:none;padding:12px 18px;border-radius:14px}
+  .lock{position:fixed;inset:0;z-index:20;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:24px}
+  .lock[hidden]{display:none}
+  .lock .box{background:#fff;border-radius:24px;padding:28px 22px;max-width:360px;width:100%;text-align:center;box-shadow:0 3px 0 var(--line)}
+  .lock .emo{font-size:52px}
+  .lock h2{font-family:Jua,sans-serif;font-weight:400;font-size:24px;margin:8px 0 6px;color:var(--main)}
+  .lock p{word-break:keep-all;font-size:14px;color:var(--sub);line-height:1.6;margin:0 0 16px}
+  .lock input{width:100%;font-size:18px;text-align:center;border:2px solid var(--line);border-radius:14px;padding:12px;margin-bottom:10px}
+  .lock button{width:100%;border:0;border-radius:14px;padding:14px;font-family:Jua,sans-serif;font-size:18px;background:var(--main);color:#fff}
+  .lock .err{color:#E0603A;font-size:13px;min-height:18px;margin-top:8px}
+  .lock a{display:block;margin-top:14px;color:var(--pink);font-size:14px}
+</style>
+</head>
+<body>
+<div class="lock" id="lock" hidden>
+  <div class="box">
+    <div class="emo">🔒🛝</div>
+    <h2>오늘 놀이터 가도 될까?</h2>
+    <p>블로그 <b>아이랑 오늘 뭐하지?</b> 이웃님 전용 페이지예요.<br>비밀번호는 블로그 글에 댓글 남겨주시면<br>비밀댓글로 보내드려요 💌</p>
+    <input type="password" id="pw" placeholder="비밀번호" autocomplete="current-password" enterkeyhint="go">
+    <button id="pwBtn">열기</button>
+    <div class="err" id="pwErr"></div>
+    <a href="https://blog.naver.com/todaywithkids">블로그로 가서 비밀번호 받기 →</a>
+  </div>
+</div>
+<div id="sample" class="sample" hidden>지금은 샘플 데이터예요 (실제 날씨 아님).</div>
+<header>
+  <h1 id="h1"></h1>
+  <div class="sub">미세먼지·날씨로 보는 우리 동네 놀이 시간</div>
+  <div class="upd" id="upd">불러오는 중…</div>
+</header>
+<div class="bar"><div class="wrap top">
+  <select id="region" aria-label="시도"></select>
+  <select id="station" aria-label="동네"></select>
+  <button class="loc" id="loc">📍 내 위치</button>
+</div></div>
+<main>
+  <section class="card verdict" id="verdict"><div class="empty">불러오는 중…</div></section>
+
+  <section class="card">
+    <div class="h2">⏰ 시간대별 놀이터 신호 <small>칸을 누르면 이유가 나와요</small></div>
+    <div id="days"></div>
+    <div class="detail" id="detail" hidden></div>
+    <div class="legend"><span><i style="background:var(--g)"></i>놀이터 GO</span><span><i style="background:var(--y)"></i>짧게·조심</span><span><i style="background:var(--r)"></i>실내 추천</span></div>
+    <div class="fc" id="fc"></div>
+  </section>
+
+  <section class="card">
+    <div class="h2">🗺 지금 어디로 갈까?</div>
+    <div class="seg" id="ptab">
+      <button data-k="out" class="on">🛝 실외 놀이터</button>
+      <button data-k="in">🏠 실내 놀이시설</button>
+    </div>
+    <div class="chips" id="pchips"></div>
+    <div class="count" id="pcount"></div>
+    <div id="plist"></div>
+    <button class="more" id="pmore" hidden>더 보기</button>
+    <div class="note" id="pnote"></div>
+    <a class="link" href="https://ssw3200-ops.github.io/kids-weekend/" target="_blank" rel="noopener">🎪 실내 공연·전시·체험 찾기<small>이번 주말 아이랑 갈 만한 행사 모아보기 (같은 비밀번호)</small></a>
+  </section>
+</main>
+<footer>
+  데이터: 한국환경공단 에어코리아(실시간 측정·대기질 예보), 기상청 단기예보·생활기상지수, 행정안전부 전국어린이놀이시설정보 (공공데이터포털)<br>
+  매시간 자동 갱신 · 측정소·예보 기준이라 실제 체감과 다를 수 있어요<br>
+  <a class="blog" href="https://blog.naver.com/todaywithkids">🎈 아이랑 오늘 뭐하지? 블로그</a>
+</footer>
+<script>
+const $=id=>document.getElementById(id);
+const store={get:k=>{try{return localStorage.getItem(k)}catch(e){return null}},set:(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}}};
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+let META=null,PW=null,D=null,ME=null,ST=null,PTAB="out",PKIND="p",SHOW=10,SEL=null,HOURS=[];
+const PCACHE={};
+
+(t=>{$("h1").innerHTML=[...t].map(c=>c===" "?" ":`<span>${c}</span>`).join("")})("오늘 놀이터 가도 될까? 🛝");
+
+// ---------- 시간 (한국시간 벽시계를 UTC 필드로 다룸)
+const kstNow=()=>new Date(Date.now()+9*3600e3);
+const ymdOf=d=>d.toISOString().slice(0,10);
+function parseYmdh(s){return new Date(Date.UTC(+s.slice(0,4),+s.slice(4,6)-1,+s.slice(6,8),+s.slice(8,10)))}
+
+// ---------- 거리
+function dist(a,b,c,d){const R=6371,r=Math.PI/180,x=(d-b)*r*Math.cos((a+c)/2*r),y=(c-a)*r;return Math.sqrt(x*x+y*y)*R}
+const km=v=>v<1?`${Math.round(v*1000)}m`:`${v.toFixed(1)}km`;
+
+// ---------- 복호화
+const b64=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0));
+async function decrypt(enc,pw){
+  const base=await crypto.subtle.importKey("raw",new TextEncoder().encode(pw),"PBKDF2",false,["deriveKey"]);
+  const key=await crypto.subtle.deriveKey({name:"PBKDF2",salt:b64(enc.salt),iterations:enc.iter,hash:"SHA-256"},base,{name:"AES-GCM",length:256},false,["decrypt"]);
+  const pt=await crypto.subtle.decrypt({name:"AES-GCM",iv:b64(enc.iv)},key,b64(enc.ct));
+  if(enc.z==="gzip"){const st=new Blob([pt]).stream().pipeThrough(new DecompressionStream("gzip"));return JSON.parse(await new Response(st).text())}
+  return JSON.parse(new TextDecoder().decode(pt));
+}
+const getJSON=async u=>{const r=await fetch(u);if(!r.ok)throw new Error(r.status);return r.json()};
+
+// ---------- 등급
+const G=["","좋음","보통","나쁨","매우나쁨"],GE=["","😊","🙂","😷","🤢"];
+const g10=v=>v==null?0:v<=30?1:v<=80?2:v<=150?3:4;
+const g25=v=>v==null?0:v<=15?1:v<=35?2:v<=75?3:4;
+const gUV=v=>v==null?"":v<=2?"낮음":v<=5?"보통":v<=7?"높음":v<=10?"매우높음":"위험";
+const SKY={1:["☀️","맑음"],3:["⛅","구름많음"],4:["☁️","흐림"]};
+const PTY={1:["🌧","비"],2:["🌨","비/눈"],3:["❄️","눈"],4:["🌦","소나기"]};
+function feels(T,W){ // 기상청 체감온도(겨울) — 기온 10℃ 이하, 바람 1.3m/s 이상일 때
+  if(T==null)return null;const v=(W||0)*3.6;
+  if(T>10||v<4.8)return T;
+  return Math.round(13.12+0.6215*T-11.37*v**0.16+0.3965*v**0.16*T);
+}
+function wear(F){
+  if(F==null)return "";
+  if(F<=0)return "🧤 패딩·모자·장갑·목도리까지 완전무장";
+  if(F<=8)return "🧥 두꺼운 외투에 모자 챙기기";
+  if(F<=15)return "🧥 얇은 외투나 경량패딩";
+  if(F<=22)return "👕 긴팔에 가벼운 겉옷";
+  if(F<=28)return "👕 반팔·얇은 긴팔";
+  return "🧢 반팔·모자·물 꼭 챙기기";
+}
+
+// ---------- 시간별 판정
+function uvAt(t){ // t: 벽시계 Date
+  const u=D.uv;if(!u||!u.r||!ST)return null;
+  const arr=u.r[ST[1]];if(!arr)return null;
+  const diff=(t-parseYmdh(u.time))/3600e3;let v=null;
+  for(const [o,x] of arr){if(o<=diff)v=x}
+  return diff>arr[arr.length-1][0]+3?null:v;
+}
+function airAt(t,i0){ // 지금~2시간: 측정값, 이후: 예보
+  const now=kstNow(),dh=Math.floor((t-now)/3600e3);
+  if(dh<=1&&ymdOf(t)===ymdOf(now)&&(ST[4]!=null||ST[5]!=null))
+    return {src:"측정",g10:g10(ST[4]),g25:g25(ST[5]),v10:ST[4],v25:ST[5]};
+  const f=(D.fc[ymdOf(t)]||{})[ST[9]];
+  if(f)return {src:"예보",g10:f.pm10||0,g25:f.pm25||0};
+  return null;
+}
+function judge(h){
+  const out={lv:0,why:[]};
+  const add=(lv,txt)=>{out.lv=Math.max(out.lv,lv);out.why.push([lv,txt])};
+  if(h.Y>0)add(2,`${PTY[h.Y]?PTY[h.Y][0]:"🌧"} ${PTY[h.Y]?PTY[h.Y][1]:"비"} 예보`);
+  else if(h.P>=60)add(2,`☔ 비 올 확률 ${h.P}%`);
+  else if(h.P>=30)add(1,`☔ 비 올 확률 ${h.P}% — 우산 챙기기`);
+  if(!h.Y&&h.wet)add(1,"💧 비 그친 직후 — 미끄럼틀·그네가 젖었을 수 있어요");
+  const a=h.air;
+  if(a){
+    const g=Math.max(a.g10,a.g25);
+    if(g>=3)add(2,`😷 ${a.g25>=a.g10?"초미세먼지":"미세먼지"} ${G[g]}${a.src==="예보"?" 예보":""}`);
+    else if((a.v25!=null&&a.v25>=26)||(a.v10!=null&&a.v10>=51))add(1,`😷 미세먼지 보통이지만 높은 편 — 30분 정도만`);
+  }
+  if(h.F!=null){
+    if(h.F<=-10)add(2,`🥶 체감 ${h.F}℃ 한파`);
+    else if(h.F<=0)add(1,`🧤 체감 ${h.F}℃ — 완전무장하고 20~30분`);
+  }
+  if(h.T!=null){
+    if(h.T>=33)add(2,`🥵 ${h.T}℃ 폭염`);
+    else if(h.T>=30)add(1,`🌡 ${h.T}℃ 더워요 — 그늘 놀이터·물 챙기기`);
+  }
+  if(h.W!=null){
+    if(h.W>=9)add(2,`💨 바람 ${h.W.toFixed(1)}m/s 강풍`);
+    else if(h.W>=6)add(1,`💨 바람 ${h.W.toFixed(1)}m/s 강한 편`);
+  }
+  if(h.uv!=null&&h.uv>=8)add(1,`☀️ 자외선 ${gUV(h.uv)} — 모자·선크림, 그늘에서`);
+  return out;
+}
+function buildHours(){
+  const wx=D.wx;HOURS=[];
+  if(!wx||!wx.g)return;
+  let g=wx.g[ST[8]];
+  if(!g){ // 이 동네 격자가 없으면 가장 가까운 측정소 격자
+    const near=D.st.filter(s=>wx.g[s[8]]).sort((a,b)=>dist(ST[2],ST[3],a[2],a[3])-dist(ST[2],ST[3],b[2],b[3]))[0];
+    if(near)g=wx.g[near[8]];
+  }
+  if(!g)return;
+  const start=parseYmdh(wx.start);
+  for(let i=0;i<g.T.length;i++){
+    if(g.T[i]==null)continue;
+    const t=new Date(start.getTime()+i*3600e3);
+    const W=g.W[i]==null?null:g.W[i]/10;
+    const h={t,ymd:ymdOf(t),hr:t.getUTCHours(),T:g.T[i],P:g.P[i]||0,Y:g.Y[i]||0,W,S:g.S[i],F:feels(g.T[i],W)};
+    h.wet=(g.Y[i-1]>0||g.Y[i-2]>0);
+    HOURS.push(h);
+  }
+  // 발표 이전(지금보다 앞) 시간은 없으니 지금 시각 칸이 비면 첫 칸으로 대신
+  HOURS.forEach(h=>{h.air=airAt(h.t);h.uv=uvAt(h.t);h.j=judge(h)});
+}
+const icon=h=>h.Y>0?(PTY[h.Y]||["🌧"])[0]:(SKY[h.S]||["☀️"])[0];
+const isPlay=h=>h.hr>=7&&h.hr<=19;
+function bestRun(list){ // 가장 낮은 단계가 가장 길게 이어지는 시간
+  const play=list.filter(isPlay);if(!play.length)return null;
+  const minLv=Math.min(...play.map(h=>h.j.lv));
+  let best=null,cur=null;
+  for(const h of play){
+    if(h.j.lv===minLv){if(cur&&h.hr===cur.e+1)cur.e=h.hr;else cur={s:h.hr,e:h.hr};if(!best||cur.e-cur.s>best.e-best.s)best={...cur}}
+    else cur=null;
+  }
+  return best?{...best,lv:minLv}:null;
+}
+const runTxt=r=>r.s===r.e?`${r.s}시`:`${r.s}~${r.e+1}시`;
+
+// ---------- 그리기
+function renderVerdict(){
+  const now=kstNow(),today=ymdOf(now),hr=now.getUTCHours();
+  const todayH=HOURS.filter(h=>h.ymd===today&&h.hr>=hr);
+  const tmr=ymdOf(new Date(now.getTime()+864e5));
+  const tmrH=HOURS.filter(h=>h.ymd===tmr);
+  let cur=HOURS.find(h=>h.ymd===today&&h.hr===hr)||HOURS.find(h=>h.t>=new Date(now.getTime()-3600e3));
+  const airNow={g10:g10(ST[4]),g25:g25(ST[5])};
+  const night=hr<7||hr>=20;
+  let lv,big,why="",best="";
+  if(!cur){ $("verdict").className="card verdict";$("verdict").innerHTML=`<div class="empty">날씨 예보를 아직 못 받았어요. 잠시 후 다시 봐주세요!</div>`;return}
+  const restRun=bestRun(todayH.filter(h=>h.hr>hr)),tRun=bestRun(tmrH);
+  if(night){
+    lv=9;big=hr>=20?"오늘 놀이터 시간은 끝! 🌙":"아직 놀이터 자는 시간 😴";
+    const r=hr>=20?tRun:bestRun(HOURS.filter(h=>h.ymd===today));
+    if(r)best=r.lv===2?`${hr>=20?"내일":"오늘"}은 실내 놀이 추천 🔴`:`${hr>=20?"내일":"오늘"} 추천 ${runTxt(r)} ${["🟢","🟡"][r.lv]}`;
+    why=r?(r.lv===0?"놀이터 가기 좋은 시간이 있어요!":r.lv===1?"짧게 놀기 괜찮은 시간이에요.":"내일은 실내 놀이를 추천해요."):"";
+  }else{
+    lv=cur.j.lv;
+    big=["놀이터 GO! 🛝","짧게 놀고 오기 ⏱","오늘은 실내 놀이 🏠"][lv];
+    const reasons=cur.j.why.filter(w=>w[0]===lv).map(w=>w[1]);
+    why=lv===0?`미세먼지 ${G[Math.max(airNow.g10,airNow.g25)]||"정보 없음"}, ${(SKY[cur.S]||["",""])[1]||"날씨"} ${cur.T}℃ — 신나게 놀기 좋아요!`:reasons.join("<br>");
+    if(lv===2&&restRun&&restRun.lv<2){big="지금은 실내, 이따 놀이터 ⏳";best=`추천 ${runTxt(restRun)} ${["🟢","🟡"][restRun.lv]}`}
+    else if(restRun&&restRun.lv<=lv&&restRun.s>hr)best=`오늘 더 좋은 시간 ${runTxt(restRun)} ${["🟢","🟡","🔴"][restRun.lv]}`;
+    else if(restRun&&restRun.lv<=lv&&lv<2)best=`${restRun.e+1}시까지 계속 ${["🟢 좋아요","🟡 비슷해요"][restRun.lv]}`;
+  }
+  const h=night?(tmrH.find(x=>x.hr===10)||cur):cur;
+  const a10=g10(ST[4]),a25=g25(ST[5]);
+  const stats=`
+    <div class="st"><div class="k">미세먼지 PM10</div><div class="v c${a10}">${a10?GE[a10]+" "+G[a10]:"—"}</div><div class="d">${ST[4]!=null?ST[4]+"㎍/㎥":"측정 중"}</div></div>
+    <div class="st"><div class="k">초미세먼지 PM2.5</div><div class="v c${a25}">${a25?GE[a25]+" "+G[a25]:"—"}</div><div class="d">${ST[5]!=null?ST[5]+"㎍/㎥":"측정 중"}</div></div>
+    <div class="st"><div class="k">${night?"내일 10시":"지금"} 기온</div><div class="v">${icon(h)} ${h.T}℃</div><div class="d">체감 ${h.F}℃ · ${h.Y>0?(PTY[h.Y]||["",""])[1]:(SKY[h.S]||["",""])[1]}</div></div>
+    <div class="st"><div class="k">비·바람${h.uv!=null?"·자외선":""}</div><div class="v">☔ ${h.P}%</div><div class="d">💨 ${h.W!=null?h.W.toFixed(1)+"m/s":"—"}${h.uv!=null?" · ☀️ "+gUV(h.uv):""}</div></div>`;
+  const tips=[wear(h.F)];
+  if(!night&&lv===1)tips.push("⏱ 30분 정도 놀고 들어오는 걸 추천해요");
+  if(Math.max(a10,a25)>=3)tips.push("😷 외출하면 KF 마스크, 들어와서 손·얼굴 씻기");
+  if(lv===2&&!night)tips.push("🏠 아래 ‘실내 놀이시설’에서 가까운 곳을 찾아보세요");
+  $("verdict").className=`card verdict l${lv}`;
+  $("verdict").innerHTML=`
+    <div class="light"><i></i><i></i><i></i></div>
+    <div class="big">${big}</div>
+    <div class="why">${why}</div>
+    ${best?`<div class="best">${best}</div>`:""}
+    <div class="stats">${stats}</div>
+    <div class="tip">${tips.filter(Boolean).join("<br>")}</div>
+    <div class="src">📍 ${esc(ST[1])} ${esc(ST[0])} 측정소 기준 · 측정 ${esc(ST[7]||"-")}${ME?` · 내 위치에서 ${km(dist(ME[0],ME[1],ST[2],ST[3]))}`:""}</div>`;
+  return lv;
+}
+function renderDays(){
+  const now=kstNow(),today=ymdOf(now),hr=now.getUTCHours();
+  const days=[...new Set(HOURS.map(h=>h.ymd))].filter(d=>d>=today).slice(0,2);
+  const name=d=>d===today?"오늘":"내일";
+  $("days").innerHTML=days.map(d=>{
+    const list=HOURS.filter(h=>h.ymd===d&&isPlay(h));
+    if(!list.length)return "";
+    const md=d.slice(5).replace("-","/");
+    return `<div class="dl">${name(d)} ${md}</div><div class="tl">${list.map(h=>{
+      const past=d===today&&h.hr<hr,isNow=d===today&&h.hr===hr;
+      return `<button class="hb l${h.j.lv}${past?" past":""}${isNow?" now":""}" data-k="${h.ymd}|${h.hr}"><b>${isNow?"지금":h.hr+"시"}</b><span class="ic">${icon(h)}</span>${h.T}°</button>`}).join("")}</div>`;
+  }).join("")||`<div class="empty">예보를 아직 못 받았어요</div>`;
+  $("days").onclick=e=>{
+    const b=e.target.closest(".hb");if(!b)return;
+    const [d,hh]=b.dataset.k.split("|");const h=HOURS.find(x=>x.ymd===d&&x.hr===+hh);
+    document.querySelectorAll(".hb.sel").forEach(x=>x.classList.remove("sel"));
+    if(SEL===b.dataset.k){SEL=null;$("detail").hidden=true;return}
+    SEL=b.dataset.k;b.classList.add("sel");
+    const w=h.j.why.length?h.j.why.map(x=>`${["🟢","🟡","🔴"][x[0]]} ${x[1]}`).join("<br>"):"🟢 놀기 좋은 시간이에요!";
+    $("detail").innerHTML=`<b>${name(d)} ${h.hr}시</b> · ${icon(h)} ${h.T}℃ (체감 ${h.F}℃) · ☔ ${h.P}% · 💨 ${h.W!=null?h.W.toFixed(1):"—"}m/s${h.air?` · 대기 ${G[Math.max(h.air.g10,h.air.g25)]||"—"}(${h.air.src})`:""}<br>${w}`;
+    $("detail").hidden=false;
+  };
+  // 이 동네 대기질 예보
+  const fc=D.fc||{},parts=[];
+  for(const d of Object.keys(fc).sort()){
+    if(d<today)continue;const f=fc[d][ST[9]];if(!f)continue;
+    parts.push(`${d===today?"오늘":d.slice(5).replace("-","/")} 미세 ${G[f.pm10]||"—"} · 초미세 ${G[f.pm25]||"—"}`);
+  }
+  $("fc").innerHTML=(parts.length?`🌫 ${esc(ST[9])} 대기질 예보: ${parts.slice(0,2).join(" / ")}<br>`:"")+`<span style="color:var(--sub);font-size:12px">지금~2시간은 측정값, 그 뒤는 하루 단위 대기질 예보로 판단해요.</span>`;
+}
+
+// ---------- 장소
+const KIND={p:["🌳 공원·공공","p"],a:["🏢 아파트 단지","a"],i:["🏠 실내","i"],o:["🛝 기타 실외",""]};
+async function loadPlaces(reg){
+  if(PCACHE[reg])return PCACHE[reg];
+  const m=META.regions[reg];if(!m)return [];
+  const d=await decrypt(await getJSON(`places/${m.code}.enc.json?v=${encodeURIComponent(META.places_at||"")}`),PW);
+  return PCACHE[reg]=d.p;
+}
+function refPoint(){return ME||[ST[2],ST[3]]}
+function pchips(){
+  const list=PTAB==="out"?[["p","🌳 공원·공공 놀이터"],["a","🏢 아파트 단지 포함"],["all","전체"]]:[];
+  $("pchips").innerHTML=list.map(([k,l])=>`<button class="chip${PKIND===k?" on":""}" data-k="${k}">${l}</button>`).join("");
+  $("pchips").hidden=!list.length;
+}
+async function renderPlaces(){
+  pchips();
+  if(!META.regions||!Object.keys(META.regions).length){$("plist").innerHTML=`<div class="empty">놀이시설 정보를 준비 중이에요 🛠</div>`;$("pcount").textContent="";$("pmore").hidden=true;return}
+  $("plist").innerHTML=`<div class="empty">찾는 중…</div>`;
+  const [la,lo]=refPoint();
+  const regs=Object.entries(META.regions).filter(([,m])=>m.lat).sort((a,b)=>dist(la,lo,a[1].lat,a[1].lon)-dist(la,lo,b[1].lat,b[1].lon)).slice(0,2).map(x=>x[0]);
+  if(!regs.includes(ST[1])&&META.regions[ST[1]])regs.unshift(ST[1]);
+  let rows=[];
+  for(const r of regs){try{rows=rows.concat(await loadPlaces(r))}catch(e){}}
+  const R=PTAB==="in"?5:2;
+  let list=rows.filter(p=>PTAB==="in"?p[4]==="i":(p[4]!=="i"&&(PKIND==="all"||p[4]==="p"||p[4]==="o"||(PKIND==="a"&&p[4]==="a"))))
+    .map(p=>({p,d:dist(la,lo,p[2],p[3])})).filter(x=>x.d<=R).sort((a,b)=>a.d-b.d);
+  $("pcount").textContent=`${ME?"내 위치":esc(ST[0])+" 측정소"}에서 ${R}km 안 · ${list.length}곳`;
+  $("pnote").innerHTML=PTAB==="in"?"실내 놀이시설은 키즈카페 등 유료일 수 있어요. 운영시간·요금은 출발 전 검색·전화로 확인하세요.":"아파트 단지 놀이터는 입주민 위주로 운영되는 곳이 많아요. 위치는 놀이시설 신고 기준이에요.";
+  if(!list.length){$("plist").innerHTML=`<div class="empty">${R}km 안에 등록된 ${PTAB==="in"?"실내 놀이시설":"놀이터"}가 없어요 😢<br>${PTAB==="out"&&PKIND==="p"?"‘아파트 단지 포함’을 눌러보세요.":"📍 내 위치를 눌러보세요."}</div>`;$("pmore").hidden=true;return}
+  $("plist").innerHTML=list.slice(0,SHOW).map(({p,d})=>{
+    const [name,addr,,,k,place]=p;const kd=KIND[k]||KIND.o;
+    const q=encodeURIComponent(name+" "+addr.split(" ").slice(0,3).join(" "));
+    return `<div class="pl">
+      <div class="tags"><span class="tag ${kd[1]}">${kd[0]}</span>${place&&!kd[0].includes(place)?`<span class="tag">${esc(place)}</span>`:""}</div>
+      <div class="t">${esc(name)}</div>
+      <div class="row">📍 <b>${km(d)}</b> · ${esc(addr)}</div>
+      <div class="go"><a href="https://map.naver.com/p/search/${q}" target="_blank" rel="noopener">🗺 네이버 지도·길찾기</a></div>
+    </div>`}).join("");
+  $("pmore").hidden=list.length<=SHOW;
+}
+
+// ---------- 동네 고르기
+function sidos(){return [...new Set(D.st.map(s=>s[1]))]}
+function fillStations(sido,keep){
+  const list=D.st.filter(s=>s[1]===sido);
+  $("station").innerHTML=list.map(s=>`<option value="${esc(s[0])}">${esc(s[0])}${s[4]==null&&s[5]==null?" (점검)":""}</option>`).join("");
+  if(keep&&list.some(s=>s[0]===keep))$("station").value=keep;
+}
+function nearestStation(la,lo){ // 값이 있는 가장 가까운 측정소
+  const s=[...D.st].sort((a,b)=>dist(la,lo,a[2],a[3])-dist(la,lo,b[2],b[3]));
+  return s.slice(0,5).find(x=>x[4]!=null||x[5]!=null)||s[0];
+}
+function pickFromUI(){
+  const sido=$("region").value,name=$("station").value;
+  let s=D.st.find(x=>x[1]===sido&&x[0]===name);
+  if(s&&s[4]==null&&s[5]==null){ // 점검 중이면 근처 측정소 값 사용
+    const n=nearestStation(s[2],s[3]);s=[...s];s[4]=n[4];s[5]=n[5];s[7]=n[7];s[0]=s[0]+"→"+n[0];
+  }
+  return s;
+}
+async function apply(){
+  if(!ST)return;
+  buildHours();SEL=null;$("detail").hidden=true;
+  const lv=renderVerdict();renderDays();
+  if(lv===2&&!apply.userTab){PTAB="in";}else if(!apply.userTab)PTAB="out";
+  [...$("ptab").children].forEach(x=>x.classList.toggle("on",x.dataset.k===PTAB));
+  SHOW=10;await renderPlaces();
+}
+function setupUI(){
+  const ss=sidos();
+  $("region").innerHTML=ss.map(r=>`<option>${esc(r)}</option>`).join("");
+  const saved=(store.get("kp_st")||"세종|").split("|");
+  $("region").value=ss.includes(saved[0])?saved[0]:(ss.includes("세종")?"세종":ss[0]);
+  fillStations($("region").value,saved[1]);
+  $("region").onchange=()=>{ME=null;locOff();fillStations($("region").value);choose()};
+  $("station").onchange=()=>{ME=null;locOff();choose()};
+  $("loc").onclick=locate;
+  $("ptab").onclick=e=>{const b=e.target.closest("button");if(!b)return;PTAB=b.dataset.k;apply.userTab=true;
+    [...$("ptab").children].forEach(x=>x.classList.toggle("on",x===b));SHOW=10;renderPlaces()};
+  $("pchips").onclick=e=>{const b=e.target.closest("button");if(!b)return;PKIND=b.dataset.k;SHOW=10;renderPlaces()};
+  $("pmore").onclick=()=>{SHOW+=10;renderPlaces()};
+}
+function locOff(){$("loc").classList.remove("on");$("loc").textContent="📍 내 위치"}
+function choose(){ST=pickFromUI();store.set("kp_st",$("region").value+"|"+$("station").value);apply()}
+function locate(){
+  if(!navigator.geolocation){alert("이 휴대폰에서는 위치를 쓸 수 없어요. 동네를 직접 골라주세요.");return}
+  $("loc").textContent="찾는 중…";
+  navigator.geolocation.getCurrentPosition(p=>{
+    ME=[p.coords.latitude,p.coords.longitude];
+    const s=nearestStation(ME[0],ME[1]);
+    $("region").value=s[1];fillStations(s[1],s[0]);ST=s;
+    $("loc").textContent="📍 내 주변";$("loc").classList.add("on");
+    apply();
+  },()=>{locOff();alert("위치 권한이 꺼져 있어요. 동네를 직접 골라주세요.")},{enableHighAccuracy:false,timeout:10000,maximumAge:300000});
+}
+
+// ---------- 시작
+async function unlock(pw,quiet){
+  $("pwBtn").textContent="여는 중…";
+  try{
+    D=await decrypt(await getJSON(`now.enc.json?v=${encodeURIComponent(META.updated)}`),pw);
+    PW=pw;store.set("kp_pw",pw);$("lock").hidden=true;
+    setupUI();choose();
+  }catch(e){
+    $("lock").hidden=false;if(!quiet)$("pwErr").textContent="비밀번호가 맞지 않아요. 최신 비밀번호를 확인해 주세요!";
+  }
+  $("pwBtn").textContent="열기";
+}
+(async()=>{
+  try{META=await getJSON("meta.json?"+Date.now())}catch(e){$("upd").textContent="아직 데이터가 없어요. 잠시 후 다시 와주세요!";return}
+  $("upd").textContent=`업데이트 ${META.updated} · 매시간 자동 갱신`;
+  if(META.sample)$("sample").hidden=false;
+  $("pwBtn").onclick=()=>unlock($("pw").value.trim());
+  $("pw").onkeydown=e=>{if(e.key==="Enter")unlock($("pw").value.trim())};
+  const saved=store.get("kp_pw");
+  if(saved)await unlock(saved,true);else $("lock").hidden=false;
+})();
+</script>
+</body>
+</html>

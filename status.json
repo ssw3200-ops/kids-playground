@@ -1,0 +1,68 @@
+{
+ "sources": {
+  "air": {
+   "total": 674,
+   "got": 674,
+   "fields": [
+    "coFlag",
+    "coGrade",
+    "coValue",
+    "dataTime",
+    "khaiGrade",
+    "khaiValue",
+    "mangName",
+    "no2Flag",
+    "no2Grade",
+    "no2Value",
+    "o3Flag",
+    "o3Grade",
+    "o3Value",
+    "pm10Flag",
+    "pm10Grade",
+    "pm10Grade1h",
+    "pm10Value",
+    "pm10Value24",
+    "pm25Flag",
+    "pm25Grade",
+    "pm25Grade1h",
+    "pm25Value",
+    "pm25Value24",
+    "sidoName",
+    "so2Flag",
+    "so2Grade",
+    "so2Value",
+    "stationName"
+   ],
+   "dataTime": "2026-11-28 22:00"
+  },
+  "forecast": {
+   "days": [
+    "2026-11-28",
+    "2026-11-29",
+    "2026-11-30"
+   ],
+   "regions": 19
+  },
+  "weather": {
+   "base": "202611282000",
+   "grids": 526,
+   "called": 526,
+   "fails": 0,
+   "have": 526
+  },
+  "uv": {
+   "time": "2026112821",
+   "api": "getUVIdxV5",
+   "regions": 15
+  }
+ },
+ "errors": [
+  "자외선 광주 2900000000: resultCode=99 검색결과가 없습니다. [2900000000]",
+  "자외선 전남 4600000000: resultCode=99 검색결과가 없습니다. [4600000000]"
+ ],
+ "reused": [
+  "places"
+ ],
+ "stations_linked": 648,
+ "updated": "2026-11-28 22:16"
+}
